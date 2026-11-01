@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150" role="img" aria-labelledby="title">
-  <title id="title">Burger gà minh họa</title>
-  <path fill="#ffb81c" d="M28 66c4-28 29-47 62-47s58 19 62 47H28Z"/>
-  <path fill="#fff6ec" d="M28 69h124v12H28z"/>
-  <path fill="#5b8c3a" d="M25 83c17-17 28 11 43-1 15-13 27 9 42 0 15-10 29 10 45-2v12H25V83Z"/>
-  <path fill="#e4002b" d="M27 93h126v14H27z"/>
-  <path fill="#ffb81c" d="M24 109h132c-3 18-21 25-66 25s-63-7-66-25Z"/>
-  <g fill="#fff6ec"><ellipse cx="68" cy="42" rx="3" ry="2"/><ellipse cx="92" cy="33" rx="3" ry="2"/><ellipse cx="116" cy="45" rx="3" ry="2"/><ellipse cx="82" cy="54" rx="3" ry="2"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 160" role="img" aria-labelledby="title">
+  <title id="title">Burger gà giòn với rau và phô mai minh họa</title>
+  <path fill="#b30022" opacity=".14" d="M22 71c5-32 34-52 73-52s68 20 73 52H22Z" transform="translate(3 5)"/>
+  <path fill="#ffb81c" d="M22 68c5-32 34-52 73-52s68 20 73 52H22Z"/>
+  <path fill="#fff6ec" d="M30 64c12-23 35-36 65-36s53 13 65 36H30Z" opacity=".42"/>
+  <g fill="#fff6ec"><ellipse cx="61" cy="42" rx="4" ry="2.5" transform="rotate(-22 61 42)"/><ellipse cx="91" cy="30" rx="4" ry="2.5"/><ellipse cx="121" cy="39" rx="4" ry="2.5" transform="rotate(24 121 39)"/><ellipse cx="143" cy="54" rx="3" ry="2"/></g>
+  <path fill="#5b8c3a" d="M23 70c12-13 24 9 38-1 14-10 25 8 38 0 14-8 27 9 41 0 8-5 15 1 20 1v12H23V70Z"/>
+  <path fill="#ffb81c" d="m29 80 132 0-11 16H40L29 80Z"/>
+  <path fill="#e4002b" d="M29 96h132v13H29z"/>
+  <path fill="#fff6ec" d="M38 109h114c-5 8-12 13-23 16l-13-8-16 9-18-9-15 8c-13-3-22-8-29-16Z"/>
+  <path fill="#ffb81c" d="M24 123h142c-4 20-29 28-71 28s-67-8-71-28Z"/>
+  <path fill="#b30022" d="M38 128c22 8 92 8 114 0" fill-opacity=".2"/>
 </svg>

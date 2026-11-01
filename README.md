@@ -102,3 +102,13 @@ Repo đã có `render.yaml` cho **Static Site**. Không cần cài package hay c
 4. Chờ trạng thái deploy thành công, sau đó mở URL `.onrender.com` mà Render cấp.
 
 Render sẽ tự deploy các commit mới trên `main`. Trang thanh toán vẫn chỉ là mô phỏng; Render không thêm backend hay chức năng lưu đơn.
+
+### Tự push sau mỗi commit
+
+Hook Git trong `.githooks/` sẽ tự chạy `git push origin main` sau mỗi commit trên branch `main`; commit trên branch khác không tự push. Bật hook một lần trong mỗi bản clone:
+
+```powershell
+git config core.hooksPath .githooks
+```
+
+Chỉ sửa file chưa commit thì chưa push. Sau khi commit trên `main`, GitHub nhận thay đổi và Render tự deploy theo cấu hình ở trên.
