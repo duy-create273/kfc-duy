@@ -1,0 +1,10 @@
+id,name,category,description,price,image,is_bestseller,is_available
+1,Gà rán giòn (1 miếng),ga-ran,Vàng giòn bên ngoài mềm ngọt bên trong,39000,chicken.svg,true,true
+2,Gà rán giòn (3 miếng),ga-ran,Ba miếng gà nóng giòn cho bữa no nê,109000,chicken.svg,true,true
+3,Gà không xương,ga-ran,Thịt gà mềm cắt miếng vừa ăn,55000,chicken.svg,false,true
+4,Burger gà giòn,burger,Gà giòn rau tươi kẹp bánh mềm,49000,burger.svg,true,true
+5,Burger gà phô mai,burger,Thêm lát phô mai béo ngậy,59000,burger.svg,false,true
+6,Khoai tây chiên,mon-phu,Giòn rụm rắc muối nhẹ,25000,fries.svg,false,true
+7,Salad bắp cải,mon-phu,Thanh mát giải ngấy,19000,salad.svg,false,true
+8,Nước ngọt có ga,do-uong,Ly lớn lạnh sảng khoái,15000,drink.svg,false,true
+9,Trà chanh mát lạnh,do-uong,Chua nhẹ ngọt dịu,22000,drink.svg,false,true

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiểm thử website | KFC</title>
+  <style>
+    body { max-width: 850px; margin: 32px auto; padding: 0 16px; color: #1a1a1a; font: 16px/1.5 system-ui, sans-serif; }
+    h1 { font-size: 1.7rem; }
+    #summary { padding: 12px; background: #eee; font-weight: 700; }
+    #summary[data-failed="true"] { background: #ffe4e6; color: #9f1239; }
+    #summary[data-failed="false"] { background: #dcfce7; color: #14532d; }
+    li { margin: 7px 0; }
+    .fail { color: #b91c1c; }
+    .pass { color: #166534; }
+    #site-frame { position: absolute; top: 0; left: -1400px; width: 1200px; height: 1800px; border: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Test tích hợp website</h1>
+    <p id="summary" role="status">Đang tải website mẫu…</p>
+    <ol id="results"></ol>
+    <iframe id="site-frame" src="../index.html" title="Website để kiểm thử" tabindex="-1"></iframe>
+  </main>
+  <script type="module">
+    const cases = [];
+    const results = document.querySelector("#results");
+    const frame = document.querySelector("#site-frame");
+    function test(name, callback) { cases.push({ name, callback }); }
+    function equal(actual, expected, message = "Giá trị không khớp") {
+      if (!Object.is(actual, expected)) throw new Error(`${message}: nhận ${String(actual)}, cần ${String(expected)}`);
+    }
+
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Website không tải xong trong 8 giây.")), 8000);
+      frame.addEventListener("load", () => { clearTimeout(timeout); resolve(); }, { once: true });
+    });
+    const site = frame.contentWindow;
+    const page = frame.contentDocument;
+    await new Promise((resolve, reject) => {
+      const deadline = Date.now() + 8000;
+      const checkData = () => {
+        if (!page.querySelector("[aria-busy='true']")) return resolve();
+        if (Date.now() >= deadline) return reject(new Error("CSV vẫn đang tải sau 8 giây."));
+        setTimeout(checkData, 25);
+      };
+      checkData();
+    });
+
+    test("Có đủ chín section nội dung và các điểm neo chính", () => {
+      equal(page.querySelectorAll("main > section").length, 9);
+      for (const id of ["hero", "bestsellers", "menu", "combos", "promos", "why", "reviews", "stores", "cta"]) {
+        equal(Boolean(page.getElementById(id)), true, `Thiếu #${id}`);
+      }
+    });
+    test("Năm CSV tải và render đủ dữ liệu mẫu", () => {
+      equal(page.querySelectorAll("#bestseller-list .card").length, 3);
+      equal(page.querySelectorAll("#menu-grid .card").length, 9);
+      equal(page.querySelectorAll("#combo-list .card").length, 3);
+      equal(page.querySelectorAll("#promo-list .promo").length, 2);
+      equal(page.querySelectorAll("#review-list .review").length, 3);
+      equal(page.querySelectorAll("#store-list .store").length, 3);
+    });
+    test("Không tràn ngang ở 360px, 768px và 1280px", async () => {
+      const originalWidth = frame.style.width;
+      for (const width of [360, 768, 1280]) {
+        frame.style.width = `${width}px`;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        equal(site.innerWidth, width, `Viewport ${width}px`);
+        if (page.documentElement.scrollWidth > page.documentElement.clientWidth) {
+          throw new Error(`Nội dung tràn ngang tại ${width}px (${page.documentElement.scrollWidth}px).`);
+        }
+      }
+      frame.style.width = originalWidth;
+    });
+    test("Lọc món theo danh mục không tải lại trang", () => {
+      page.querySelector("#menu-chips [data-category='ga-ran']").click();
+      equal(page.querySelectorAll("#menu-grid .card").length, 3);
+      equal(page.querySelector("#menu-chips [data-category='ga-ran']").getAttribute("aria-pressed"), "true");
+      page.querySelector("#menu-chips [data-category='all']").click();
+      equal(page.querySelectorAll("#menu-grid .card").length, 9);
+    });
+    test("Lọc cửa hàng theo thành phố", () => {
+      const filter = page.querySelector("#store-filter");
+      filter.value = "TP.HCM";
+      filter.dispatchEvent(new site.Event("change", { bubbles: true }));
+      equal(page.querySelectorAll("#store-list .store").length, 2);
+      filter.value = "all";
+      filter.dispatchEvent(new site.Event("change", { bubbles: true }));
+      equal(page.querySelectorAll("#store-list .store").length, 3);
+    });
+    test("Ưu đãi hết hạn không hiển thị", () => equal(page.querySelector("#promo-list").textContent.includes("OLDCODE"), false));
+    test("Menu điều hướng mở và đóng bằng nút hamburger", () => {
+      const toggle = page.querySelector("#nav-toggle");
+      const nav = page.querySelector("#nav-menu");
+      toggle.click();
+      equal(toggle.getAttribute("aria-expanded"), "true");
+      equal(nav.classList.contains("is-open"), true);
+      nav.querySelector("a[href='#menu']").click();
+      equal(toggle.getAttribute("aria-expanded"), "false");
+      equal(nav.classList.contains("is-open"), false);
+    });
+    test("Sao chép mã hiển thị toast thành công", async () => {
+      const copied = [];
+      Object.defineProperty(site.navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: async (code) => copied.push(code) }
+      });
+      page.querySelector("#promo-list .promo__copy").click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      equal(copied[0], "HELLO20");
+      equal(page.querySelector("#toast").textContent, "Đã sao chép mã");
+    });
+
+    const outcomes = [];
+    for (const item of cases) {
+      try { await item.callback(); outcomes.push({ name: item.name, passed: true }); }
+      catch (error) { outcomes.push({ name: item.name, passed: false, error: error.message }); }
+    }
+    for (const outcome of outcomes) {
+      const result = document.createElement("li");
+      result.className = outcome.passed ? "pass" : "fail";
+      result.textContent = outcome.passed ? `ĐẠT · ${outcome.name}` : `LỖI · ${outcome.name}: ${outcome.error}`;
+      results.append(result);
+    }
+    const failed = outcomes.filter((outcome) => !outcome.passed).length;
+    const summary = document.querySelector("#summary");
+    summary.dataset.failed = String(failed > 0);
+    summary.textContent = `${outcomes.length - failed}/${outcomes.length} kiểm thử đạt${failed ? ` · ${failed} lỗi` : " · Không có lỗi"}`;
+    document.title = failed ? "CÓ LỖI · Test website" : "ĐẠT · Test website";
+  </script>
+</body>
+</html>

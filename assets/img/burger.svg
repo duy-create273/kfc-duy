@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150" role="img" aria-labelledby="title">
+  <title id="title">Burger gà minh họa</title>
+  <path fill="#ffb81c" d="M28 66c4-28 29-47 62-47s58 19 62 47H28Z"/>
+  <path fill="#fff6ec" d="M28 69h124v12H28z"/>
+  <path fill="#5b8c3a" d="M25 83c17-17 28 11 43-1 15-13 27 9 42 0 15-10 29 10 45-2v12H25V83Z"/>
+  <path fill="#e4002b" d="M27 93h126v14H27z"/>
+  <path fill="#ffb81c" d="M24 109h132c-3 18-21 25-66 25s-63-7-66-25Z"/>
+  <g fill="#fff6ec"><ellipse cx="68" cy="42" rx="3" ry="2"/><ellipse cx="92" cy="33" rx="3" ry="2"/><ellipse cx="116" cy="45" rx="3" ry="2"/><ellipse cx="82" cy="54" rx="3" ry="2"/></g>
+</svg>

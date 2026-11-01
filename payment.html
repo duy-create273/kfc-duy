@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e4002b">
+  <meta name="description" content="Trang thanh toán mô phỏng với dữ liệu mẫu cho dự án học tập.">
+  <title>Thanh toán mô phỏng | KFC</title>
+  <link rel="stylesheet" href="css/payment.css">
+  <script type="module" src="js/payment.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="payment.html" aria-label="KFC, trang thanh toán mô phỏng">KFC<span>.</span></a>
+    <p class="topbar__label">Thanh toán <span>·</span> Bản mô phỏng</p>
+    <p class="topbar__secure">DỮ LIỆU MẪU</p>
+  </header>
+
+  <main class="checkout">
+    <div class="checkout__heading">
+      <div>
+        <p class="eyebrow">BỮA NGON ĐANG CHỜ</p>
+        <h1>Chốt đơn<br><span>thật gọn.</span></h1>
+      </div>
+      <p class="checkout__intro">Kiểm tra món, điền thông tin nhận hàng và chọn cách thanh toán mô phỏng.</p>
+    </div>
+
+    <div class="checkout__layout">
+      <form class="checkout-form" id="checkout-form" novalidate>
+        <section class="form-section" aria-labelledby="delivery-heading">
+          <div class="section-heading">
+            <span class="section-heading__number">01</span>
+            <div>
+              <h2 id="delivery-heading">Thông tin nhận hàng</h2>
+              <p>Thông tin chỉ dùng trong phiên mô phỏng này.</p>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field field--wide">
+              <label for="customer-name">Tên người nhận</label>
+              <input id="customer-name" name="fullName" autocomplete="name" maxlength="80" required aria-describedby="name-error">
+              <small class="field__error" id="name-error"></small>
+            </div>
+            <div class="field field--wide">
+              <label for="customer-phone">Số điện thoại</label>
+              <input id="customer-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="09xxxxxxxx" required aria-describedby="phone-hint phone-error">
+              <small class="field__hint" id="phone-hint">Nhập số điện thoại di động gồm 10 chữ số.</small>
+              <small class="field__error" id="phone-error"></small>
+            </div>
+            <div class="field field--wide">
+              <label for="delivery-address">Địa chỉ giao hàng</label>
+              <textarea id="delivery-address" name="address" autocomplete="street-address" rows="3" maxlength="200" placeholder="Số nhà, đường, phường/xã, quận/huyện" required aria-describedby="address-error"></textarea>
+              <small class="field__error" id="address-error"></small>
+            </div>
+            <div class="field field--wide">
+              <label for="delivery-note">Ghi chú <span class="label-optional">Không bắt buộc</span></label>
+              <input id="delivery-note" name="note" maxlength="160" placeholder="Ví dụ: gọi trước khi giao">
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="payment-heading">
+          <div class="section-heading">
+            <span class="section-heading__number">02</span>
+            <div>
+              <h2 id="payment-heading">Cách thanh toán</h2>
+              <p>Chọn một phương thức để xem bước xác nhận mẫu.</p>
+            </div>
+          </div>
+
+          <fieldset class="payment-options" aria-describedby="payment-error">
+            <legend class="visually-hidden">Chọn phương thức thanh toán</legend>
+            <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="cod">
+              <span class="payment-option__mark" aria-hidden="true">₫</span>
+              <span class="payment-option__copy"><strong>Tiền mặt</strong><small>Thanh toán khi nhận hàng (mô phỏng)</small></span>
+              <span class="payment-option__radio" aria-hidden="true"></span>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="bank-transfer">
+              <span class="payment-option__mark payment-option__mark--dark" aria-hidden="true">↗</span>
+              <span class="payment-option__copy"><strong>Chuyển khoản</strong><small>Không phát sinh giao dịch thật</small></span>
+              <span class="payment-option__radio" aria-hidden="true"></span>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="ewallet">
+              <span class="payment-option__mark payment-option__mark--gold" aria-hidden="true">◎</span>
+              <span class="payment-option__copy"><strong>Ví điện tử</strong><small>Không kết nối ví hoặc cổng thanh toán</small></span>
+              <span class="payment-option__radio" aria-hidden="true"></span>
+            </label>
+          </fieldset>
+          <small class="field__error payment-options__error" id="payment-error"></small>
+          <p class="payment-disclaimer" id="payment-disclaimer" aria-live="polite">Chọn phương thức để xem thông tin mô phỏng.</p>
+        </section>
+
+        <button class="button button--primary checkout-submit" type="submit">Xác nhận mô phỏng <span aria-hidden="true">→</span></button>
+        <p class="form-footnote">Không nhập thông tin thẻ, mật khẩu hoặc mã OTP. Nút xác nhận không tạo đơn hàng.</p>
+      </form>
+
+      <aside class="order-panel" aria-labelledby="order-heading">
+        <div class="order-panel__topline">
+          <div>
+            <p class="eyebrow">GIỎ HÀNG MẪU</p>
+            <h2 id="order-heading">Món của bạn</h2>
+          </div>
+          <span class="sample-tag">DEMO</span>
+        </div>
+
+        <ul class="order-items" id="order-items" aria-label="Các món trong giỏ hàng mẫu"></ul>
+
+        <div class="order-totals" aria-live="polite">
+          <div><span>Tạm tính</span><strong id="subtotal">—</strong></div>
+          <div><span>Giao hàng <small>(mức mẫu)</small></span><strong id="delivery-fee">—</strong></div>
+          <div class="order-totals__grand"><span>Tổng cộng</span><strong id="total">—</strong></div>
+        </div>
+
+        <div class="order-panel__note">
+          <span aria-hidden="true">i</span>
+          <p>Giá và phí giao hàng trong trang này chỉ là dữ liệu minh họa, không phải giá bán thực tế.</p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="confirmation" id="confirmation" aria-labelledby="confirmation-heading" aria-live="polite" hidden>
+      <div class="confirmation__icon" aria-hidden="true">✓</div>
+      <div>
+        <p class="eyebrow">MÔ PHỎNG HOÀN TẤT</p>
+        <h2 id="confirmation-heading">Cảm ơn <span id="confirmed-name"></span>!</h2>
+        <p id="confirmation-detail"></p>
+        <p class="confirmation__notice">Chưa có đơn hàng hoặc giao dịch nào được tạo.</p>
+      </div>
+      <button class="button button--secondary" id="try-again" type="button">Thử lại</button>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>KFC <span aria-hidden="true">·</span> Bản học tập</span>
+    <p>Dự án học tập, không phải trang chính thức của KFC.</p>
+  </footer>
+</body>
+</html>

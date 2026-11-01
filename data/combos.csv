@@ -1,0 +1,4 @@
+id,name,items,price,original_price,badge,image,is_available
+1,Combo Một Mình,1 gà rán|1 khoai tây|1 nước,69000,79000,Tiết kiệm,bucket.svg,true
+2,Combo Đôi Bạn,2 gà rán|1 burger|2 nước,149000,178000,Hot,bucket.svg,true
+3,Combo Gia Đình,6 gà rán|2 khoai tây|1 salad|4 nước,329000,399000,Best seller,bucket.svg,true

@@ -1,0 +1,4 @@
+id,name,address,district,city,phone,open_hours
+1,Cửa hàng Mẫu 1,"123 Đường Mẫu, Phường A",Quận 1,TP.HCM,028 0000 0001,08:00 - 22:00
+2,Cửa hàng Mẫu 2,"45 Đường Ví Dụ, Phường B",Quận 3,TP.HCM,028 0000 0002,08:00 - 22:00
+3,Cửa hàng Mẫu 3,"78 Phố Thử Nghiệm, Phường C",Hoàn Kiếm,Hà Nội,024 0000 0003,08:00 - 21:30

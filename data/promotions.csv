@@ -1,0 +1,4 @@
+id,title,description,code,start_date,end_date,active
+1,Giảm 20% đơn đầu tiên,Áp dụng cho đơn từ 100.000đ,HELLO20,2026-11-01,2026-12-31,true
+2,Mua 1 tặng 1 nước,Áp dụng mọi combo vào cuối tuần,WEEKEND,2026-11-01,2027-01-31,true
+3,Ưu đãi hết hạn (ví dụ ẩn),Dòng này dùng để thử logic ẩn,OLDCODE,2026-01-01,2026-02-01,true

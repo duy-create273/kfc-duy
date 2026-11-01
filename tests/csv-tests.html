@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiểm thử CSV | KFC</title>
+  <style>
+    body { max-width: 850px; margin: 32px auto; padding: 0 16px; color: #1a1a1a; font: 16px/1.5 system-ui, sans-serif; }
+    h1 { font-size: 1.7rem; }
+    #summary { padding: 12px; background: #eee; font-weight: 700; }
+    #summary[data-failed="true"] { background: #ffe4e6; color: #9f1239; }
+    #summary[data-failed="false"] { background: #dcfce7; color: #14532d; }
+    li { margin: 7px 0; }
+    .fail { color: #b91c1c; }
+    .pass { color: #166534; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Test parser CSV</h1>
+    <p id="summary" role="status">Đang chạy kiểm thử…</p>
+    <ol id="results"></ol>
+  </main>
+  <script type="module">
+    import { loadCSV, parseCSV, toBool, toList, toNumber } from "../js/csv.js";
+
+    const cases = [];
+    const results = document.querySelector("#results");
+    function test(name, callback) { cases.push({ name, callback }); }
+    function equal(actual, expected, message = "Giá trị không khớp") {
+      if (!Object.is(actual, expected)) throw new Error(`${message}: nhận ${String(actual)}, cần ${String(expected)}`);
+    }
+    function deepEqual(actual, expected, message = "Cấu trúc không khớp") {
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`${message}: nhận ${JSON.stringify(actual)}, cần ${JSON.stringify(expected)}`);
+    }
+    function throws(callback, ErrorType, message) {
+      try { callback(); } catch (error) {
+        if (error instanceof ErrorType) return;
+        throw new Error(`${message}: sai loại lỗi ${error.constructor.name}`);
+      }
+      throw new Error(`${message}: không phát sinh lỗi`);
+    }
+
+    test("Bỏ BOM và trim tiêu đề cột", () => deepEqual(parseCSV("\uFEFF id , name \r\n1,An"), [{ id: "1", name: "An" }]));
+    test("Đọc dấu phẩy trong ô có nháy kép", () => equal(parseCSV('id,address\n1,"123 Đường Mẫu, Phường A"')[0].address, "123 Đường Mẫu, Phường A"));
+    test("Đọc nháy kép được escape theo CSV", () => equal(parseCSV('id,note\n1,"Món ""đặc biệt"""')[0].note, 'Món "đặc biệt"'));
+    test("Đọc xuống dòng CRLF", () => deepEqual(parseCSV("id,name\r\n1,An\r\n2,Bình"), [{ id: "1", name: "An" }, { id: "2", name: "Bình" }]));
+    test("Giữ xuống dòng nằm trong ô được quote", () => equal(parseCSV('id,note\n1,"dòng một\ndòng hai"')[0].note, "dòng một\ndòng hai"));
+    test("Bỏ dòng trống nhưng giữ hàng dữ liệu tiếp theo", () => deepEqual(parseCSV("id,name\n\n1,An\n  \n2,Bình\n"), [{ id: "1", name: "An" }, { id: "2", name: "Bình" }]));
+    test("Ô cuối bị thiếu được trả về chuỗi rỗng", () => deepEqual(parseCSV("id,name\n1"), [{ id: "1", name: "" }]));
+    test("CSV chỉ có header trả về danh sách rỗng", () => deepEqual(parseCSV("id,name\n"), []));
+    test("CSV không phải chuỗi bị từ chối", () => throws(() => parseCSV(null), TypeError, "Kiểu dữ liệu"));
+    test("Từ chối dấu nháy kép chưa đóng", () => throws(() => parseCSV('id,name\n1,"An'), SyntaxError, "Nháy chưa đóng"));
+    test("Từ chối tiêu đề rỗng", () => throws(() => parseCSV("id,,name\n1,2,An"), SyntaxError, "Header rỗng"));
+    test("Từ chối tiêu đề trùng", () => throws(() => parseCSV("id,name,name\n1,An,Bình"), SyntaxError, "Header trùng"));
+    test("Chuyển số nguyên VND", () => equal(toNumber(" 39000 "), 39000));
+    test("Từ chối số rỗng, thập phân và vượt safe integer", () => {
+      for (const value of ["", "1.5", "9007199254740992"]) throws(() => toNumber(value), TypeError, `Số ${value}`);
+    });
+    test("Chuyển boolean true/false", () => deepEqual([toBool("true"), toBool("false")], [true, false]));
+    test("Từ chối boolean không hợp lệ", () => throws(() => toBool("yes"), TypeError, "Boolean sai"));
+    test("Tách danh sách bằng dấu | và trim", () => deepEqual(toList(" 1 gà | 2 nước || "), ["1 gà", "2 nước"]));
+    test("Danh sách rỗng trả về mảng rỗng", () => deepEqual(toList("  "), []));
+    test("Tải và parse đủ năm CSV mẫu", async () => {
+      const files = ["menu", "combos", "promotions", "stores", "testimonials"];
+      const rows = await Promise.all(files.map((file) => loadCSV(`../data/${file}.csv`)));
+      deepEqual(rows.map((fileRows) => fileRows.length), [9, 3, 3, 3, 3]);
+      equal(rows[3][0].address, "123 Đường Mẫu, Phường A");
+    });
+    test("HTTP lỗi khi CSV không tồn tại được báo ra", async () => {
+      let failed = false;
+      const originalFetch = window.fetch;
+      window.fetch = async () => new Response("", { status: 404 });
+      try { await loadCSV("../data/not-found.csv"); } catch (error) { failed = error.message.includes("HTTP 404"); }
+      finally { window.fetch = originalFetch; }
+      equal(failed, true);
+    });
+
+    const outcomes = [];
+    for (const item of cases) {
+      try {
+        await item.callback();
+        outcomes.push({ name: item.name, passed: true });
+      } catch (error) {
+        outcomes.push({ name: item.name, passed: false, error: error.message });
+      }
+    }
+    for (const outcome of outcomes) {
+      const result = document.createElement("li");
+      result.className = outcome.passed ? "pass" : "fail";
+      result.textContent = outcome.passed ? `ĐẠT · ${outcome.name}` : `LỖI · ${outcome.name}: ${outcome.error}`;
+      results.append(result);
+    }
+    const failed = outcomes.filter((outcome) => !outcome.passed).length;
+    const summary = document.querySelector("#summary");
+    summary.dataset.failed = String(failed > 0);
+    summary.textContent = `${outcomes.length - failed}/${outcomes.length} kiểm thử đạt${failed ? ` · ${failed} lỗi` : " · Không có lỗi"}`;
+    document.title = failed ? "CÓ LỖI · Test CSV" : "ĐẠT · Test CSV";
+  </script>
+</body>
+</html>

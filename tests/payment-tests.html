@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiểm thử module Thanh Toán</title>
+  <style>
+    body { max-width: 850px; margin: 32px auto; padding: 0 16px; color: #1a1a1a; font: 16px/1.5 system-ui, sans-serif; }
+    h1 { font-size: 1.7rem; }
+    #summary { padding: 12px; background: #eee; font-weight: 700; }
+    #summary[data-failed="true"] { background: #ffe4e6; color: #9f1239; }
+    #summary[data-failed="false"] { background: #dcfce7; color: #14532d; }
+    li { margin: 7px 0; }
+    .fail { color: #b91c1c; }
+    .pass { color: #166534; }
+    #demo-frame { position: absolute; top: 0; left: -1200px; width: 1000px; height: 900px; border: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Test module Thanh Toán</h1>
+    <p id="summary" role="status">Đang chạy kiểm thử…</p>
+    <ol id="results"></ol>
+    <iframe id="demo-frame" src="../payment.html" title="Trang thanh toán để kiểm thử" tabindex="-1"></iframe>
+  </main>
+  <script type="module">
+    import {
+      calculateOrderTotals,
+      formatVND,
+      getPaymentLabel,
+      normalizeCartItems,
+      validateCheckout
+    } from "../js/payment-core.js";
+
+    const results = document.querySelector("#results");
+    const cases = [];
+    const validCart = [
+      { id: "a", name: "Gà rán", price: 39000, quantity: 2 },
+      { id: "b", name: "Nước", price: 15000, quantity: 1 }
+    ];
+    const validDetails = {
+      fullName: "Nguyễn An",
+      phone: "0912345678",
+      address: "12 Đường Mẫu",
+      paymentMethod: "cod"
+    };
+
+    function test(name, callback) {
+      try {
+        callback();
+        cases.push({ name, passed: true });
+      } catch (error) {
+        cases.push({ name, passed: false, error: error.message });
+      }
+    }
+
+    function equal(actual, expected, message = "Giá trị không khớp") {
+      if (!Object.is(actual, expected)) {
+        throw new Error(`${message}: nhận ${String(actual)}, cần ${String(expected)}`);
+      }
+    }
+
+    function deepEqual(actual, expected, message = "Cấu trúc không khớp") {
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+        throw new Error(`${message}: nhận ${JSON.stringify(actual)}, cần ${JSON.stringify(expected)}`);
+      }
+    }
+
+    function throws(callback, ErrorType, message) {
+      try {
+        callback();
+      } catch (error) {
+        if (error instanceof ErrorType) return;
+        throw new Error(`${message}: sai loại lỗi ${error.constructor.name}`);
+      }
+      throw new Error(`${message}: không phát sinh lỗi`);
+    }
+
+    test("Chuẩn hóa giỏ hợp lệ và loại bỏ khoảng trắng thừa", () => {
+      const items = normalizeCartItems([{ id: " a ", name: " Gà ", price: 10, quantity: 2 }]);
+      deepEqual(items, [{ id: "a", name: "Gà", price: 10, quantity: 2 }]);
+      equal(Object.isFrozen(items[0]), true, "Món đã chuẩn hóa phải bất biến");
+    });
+    test("Từ chối giỏ null", () => throws(() => normalizeCartItems(null), TypeError, "Giỏ null"));
+    test("Từ chối giỏ rỗng", () => throws(() => normalizeCartItems([]), TypeError, "Giỏ rỗng"));
+    test("Từ chối phần tử không phải object", () => throws(() => normalizeCartItems([null]), TypeError, "Món null"));
+    test("Từ chối mã món rỗng", () => throws(() => normalizeCartItems([{ id: " ", name: "Gà", price: 1, quantity: 1 }]), TypeError, "Mã rỗng"));
+    test("Từ chối tên món rỗng", () => throws(() => normalizeCartItems([{ id: "a", name: " ", price: 1, quantity: 1 }]), TypeError, "Tên rỗng"));
+    test("Từ chối mã món trùng", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: 1, quantity: 1 }, { id: "a", name: "B", price: 1, quantity: 1 }]), TypeError, "Mã trùng"));
+    test("Từ chối giá dạng chuỗi", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: "10", quantity: 1 }]), TypeError, "Giá chuỗi"));
+    test("Từ chối giá âm", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: -1, quantity: 1 }]), TypeError, "Giá âm"));
+    test("Từ chối giá thập phân", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: 1.5, quantity: 1 }]), TypeError, "Giá thập phân"));
+    test("Chấp nhận món giá 0", () => equal(normalizeCartItems([{ id: "a", name: "Tặng", price: 0, quantity: 1 }])[0].price, 0));
+    test("Từ chối số lượng 0", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: 1, quantity: 0 }]), TypeError, "Số lượng 0"));
+    test("Từ chối số lượng thập phân", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: 1, quantity: 1.5 }]), TypeError, "Số lượng thập phân"));
+    test("Từ chối số lượng vượt 99", () => throws(() => normalizeCartItems([{ id: "a", name: "A", price: 1, quantity: 100 }]), TypeError, "Số lượng 100"));
+    test("Tính đúng tạm tính, phí giao hàng và tổng", () => deepEqual(calculateOrderTotals(validCart, 12000), { subtotal: 93000, deliveryFee: 12000, total: 105000 }));
+    test("Từ chối phí giao hàng âm", () => throws(() => calculateOrderTotals(validCart, -1), TypeError, "Phí âm"));
+    test("Từ chối phí giao hàng thập phân", () => throws(() => calculateOrderTotals(validCart, 1.25), TypeError, "Phí thập phân"));
+    test("Phát hiện tổng vượt giới hạn số nguyên an toàn", () => throws(() => calculateOrderTotals([{ id: "a", name: "A", price: Number.MAX_SAFE_INTEGER, quantity: 2 }], 0), RangeError, "Tràn tổng"));
+    test("Chấp nhận bộ thông tin hợp lệ", () => deepEqual(validateCheckout(validDetails), {}));
+    test("Trim tên và địa chỉ trước khi xác thực", () => deepEqual(validateCheckout({ ...validDetails, fullName: "  An  ", address: "  Nhà số 1  " }), {}));
+    test("Báo đồng thời tên, điện thoại, địa chỉ và phương thức thiếu", () => deepEqual(validateCheckout({}), {
+      fullName: "Tên người nhận cần có từ 2 đến 80 ký tự.",
+      phone: "Nhập số điện thoại gồm 10 chữ số và bắt đầu bằng 0.",
+      address: "Địa chỉ cần có từ 5 đến 200 ký tự.",
+      paymentMethod: "Hãy chọn một phương thức thanh toán."
+    }));
+    test("Từ chối số điện thoại có chữ", () => equal(Boolean(validateCheckout({ ...validDetails, phone: "09123abc78" }).phone), true));
+    test("Từ chối số điện thoại không bắt đầu bằng 0", () => equal(Boolean(validateCheckout({ ...validDetails, phone: "1912345678" }).phone), true));
+    test("Từ chối số điện thoại 9 chữ số", () => equal(Boolean(validateCheckout({ ...validDetails, phone: "091234567" }).phone), true));
+    test("Từ chối tên dài hơn 80 ký tự", () => equal(Boolean(validateCheckout({ ...validDetails, fullName: "A".repeat(81) }).fullName), true));
+    test("Từ chối địa chỉ ngắn hơn 5 ký tự", () => equal(Boolean(validateCheckout({ ...validDetails, address: "Nhà" }).address), true));
+    test("Từ chối payment method không nằm trong danh sách", () => equal(Boolean(validateCheckout({ ...validDetails, paymentMethod: "unknown" }).paymentMethod), true));
+    test("Không chấp nhận key kế thừa làm payment method", () => equal(Boolean(validateCheckout({ ...validDetails, paymentMethod: "toString" }).paymentMethod), true));
+    test("Trả nhãn an toàn cho phương thức không hợp lệ", () => equal(getPaymentLabel("unknown"), "Phương thức không hợp lệ"));
+    test("Định dạng VND bằng locale vi-VN", () => equal(formatVND(39000), `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(39000)}đ`));
+    test("Từ chối định dạng số tiền âm", () => throws(() => formatVND(-1), TypeError, "Định dạng âm"));
+
+    const demoFrame = document.querySelector("#demo-frame");
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Trang thanh toán không tải xong trong 5 giây.")), 5000);
+      demoFrame.addEventListener("load", () => {
+        clearTimeout(timeout);
+        resolve();
+      }, { once: true });
+    });
+    const demoDocument = demoFrame.contentDocument;
+
+    test("Trang hiển thị đúng giỏ mẫu và tổng 149.000đ", () => {
+      equal(demoDocument.querySelectorAll("#order-items .order-item").length, 2);
+      equal(demoDocument.querySelector("#subtotal").textContent, "134.000đ");
+      equal(demoDocument.querySelector("#delivery-fee").textContent, "15.000đ");
+      equal(demoDocument.querySelector("#total").textContent, "149.000đ");
+    });
+
+    test("Submit giỏ thông tin trống hiển thị lỗi và focus tên", () => {
+      const form = demoDocument.querySelector("#checkout-form");
+      form.requestSubmit();
+      equal(demoDocument.querySelector("#name-error").textContent, "Tên người nhận cần có từ 2 đến 80 ký tự.");
+      equal(demoDocument.querySelector("#customer-name").getAttribute("aria-invalid"), "true");
+      equal(demoDocument.activeElement.id, "customer-name");
+    });
+
+    test("Submit hợp lệ hiện xác nhận mà không tạo đơn thật", () => {
+      demoDocument.querySelector("#customer-name").value = "Nguyễn An";
+      demoDocument.querySelector("#customer-phone").value = "0912345678";
+      demoDocument.querySelector("#delivery-address").value = "12 Đường Mẫu, Quận 1";
+      demoDocument.querySelector("input[name='paymentMethod'][value='bank-transfer']").checked = true;
+      demoDocument.querySelector("#checkout-form").requestSubmit();
+      equal(demoDocument.querySelector("#confirmation").hidden, false);
+      equal(demoDocument.querySelector("#confirmed-name").textContent, "Nguyễn An");
+      equal(demoDocument.querySelector("#confirmation-detail").textContent, "Chuyển khoản (mô phỏng) · Tổng mẫu 149.000đ.");
+      equal(demoDocument.querySelector(".confirmation__notice").textContent, "Chưa có đơn hàng hoặc giao dịch nào được tạo.");
+    });
+
+    test("Tên người nhận được render dạng text, không chèn HTML", () => {
+      const name = "An <img src=x onerror=alert(1)>";
+      demoDocument.querySelector("#customer-name").value = name;
+      demoDocument.querySelector("#checkout-form").requestSubmit();
+      equal(demoDocument.querySelector("#confirmed-name").textContent, name);
+      equal(demoDocument.querySelector("#confirmed-name img"), null);
+    });
+
+    for (const result of cases) {
+      const item = document.createElement("li");
+      item.className = result.passed ? "pass" : "fail";
+      item.textContent = result.passed ? `ĐẠT · ${result.name}` : `LỖI · ${result.name}: ${result.error}`;
+      results.append(item);
+    }
+
+    const failed = cases.filter((result) => !result.passed).length;
+    const summary = document.querySelector("#summary");
+    summary.dataset.failed = String(failed > 0);
+    summary.textContent = `${cases.length - failed}/${cases.length} kiểm thử đạt${failed ? ` · ${failed} lỗi` : " · Không có lỗi"}`;
+    document.title = failed ? "CÓ LỖI · Test Thanh Toán" : "ĐẠT · Test Thanh Toán";
+  </script>
+</body>
+</html>
