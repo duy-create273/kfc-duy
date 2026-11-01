@@ -91,3 +91,14 @@ Mở các trang sau bằng cùng web server tĩnh:
 - `tests/csv-tests.html` — parser và dữ liệu CSV.
 - `tests/site-tests.html` — các section, bộ lọc, menu, sao chép mã và responsive.
 - `tests/payment-tests.html` — kiểm tra module thanh toán mô phỏng.
+
+## 9. Deploy lên Render
+
+Repo đã có `render.yaml` cho **Static Site**. Không cần cài package hay chạy lệnh build.
+
+1. Đăng nhập [Render Dashboard](https://dashboard.render.com/).
+2. Chọn **New → Blueprint** và kết nối GitHub nếu được hỏi.
+3. Chọn repo `duy-create273/kfc-duy`, branch `main`, rồi tạo Blueprint `kfc-duy`.
+4. Chờ trạng thái deploy thành công, sau đó mở URL `.onrender.com` mà Render cấp.
+
+Render sẽ tự deploy các commit mới trên `main`. Trang thanh toán vẫn chỉ là mô phỏng; Render không thêm backend hay chức năng lưu đơn.

@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: kfc-duy
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .
+    branch: main
+    autoDeployTrigger: commit
